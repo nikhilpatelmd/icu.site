@@ -1,6 +1,6 @@
 module.exports = {
   url: process.env.URL || 'http://localhost:8080',
-  siteName: 'The ICU Review',
+  siteName: 'ICU Review',
   siteDescription:
     'A living repository of influential literature in critical care medicine',
   siteType: 'Blog', // schema
