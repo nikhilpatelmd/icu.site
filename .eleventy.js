@@ -34,6 +34,8 @@ const {
 
 // module import collections
 const {getAllPosts} = require('./config/collections/index.js');
+const {getAllTrials} = require('./config/collections/index.js');
+
 
 // module import events
 const {svgToJpeg} = require('./config/events/index.js');
