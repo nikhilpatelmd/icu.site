@@ -8,10 +8,19 @@
 }
 
 @font-face {
+  font-family: Metropolis;
+  font-style: bold;
+  font-display: swap;
+  font-weight: 600;
+  src: local(''), url(/assets/fonts/metropolis/Metropolis-SemiBold.woff2) format('woff2'),
+    url(/assets/fonts/metropolis/Metropolis-SemiBold.woff) format('woff');
+}
+
+@font-face {
   font-family: Metropolis Bold;
   font-style: bold;
   font-display: swap;
   font-weight: 600;
-  src: local(''), url(/assets/fonts/metropolis/Metropolis-Bold.woff2) format('woff2'),
-      url(/assets/fonts/metropolis/Metropolis-Bold.woff) format('woff');
+  src: local(''), url(/assets/fonts/metropolis/Metropolis-ExtraBold.woff2) format('woff2'),
+      url(/assets/fonts/metropolis/Metropolis-ExtraBold.woff) format('woff');
 }

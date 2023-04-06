@@ -9,7 +9,7 @@ body {
   background: var(--color-light);
   font-size: var(--size-step-0);
   font-family: var(--font-base);
-  line-height: 1.4;
+  line-height: 1.55;
   letter-spacing: var(--tracking);
 }
 
@@ -23,7 +23,7 @@ h3 {
 }
 
 h1 {
-  font-size: var(--size-step-5);
+  font-size: var(--size-step-6);
 }
 
 h2 {
@@ -38,7 +38,7 @@ h3 {
 p,
 li,
 blockquote:not([class]) {
-  max-width: 70ch;
+  max-width: 60ch;
 }
 
 h1,
