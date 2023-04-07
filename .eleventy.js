@@ -7,9 +7,6 @@
  *  - `./config/transforms/index.js`
  */
 
-// get package.json
-const packageVersion = require('./package.json').version;
-
 // module import filters
 const {
   limit,
@@ -21,35 +18,34 @@ const {
   stripHtml,
   minifyCss,
   minifyJs,
-  mdInline,
-  splitlines
+  mdInline
 } = require('./config/filters/index.js');
+
 
 // module import shortcodes
 const {
+  asideShortcode,
   imageShortcodePlaceholder,
   includeRaw,
   liteYoutube
 } = require('./config/shortcodes/index.js');
 
-// module import collections
-const {getAllPosts} = require('./config/collections/index.js');
-const {getAllTrials} = require('./config/collections/index.js');
-
-
-// module import events
-const {svgToJpeg} = require('./config/events/index.js');
+// Module Import collections from config
+const { getAllTrials } = require('./config/collections/index.js');
 
 // plugins
 const markdownLib = require('./config/plugins/markdown.js');
-const {EleventyRenderPlugin} = require('@11ty/eleventy');
+const { EleventyRenderPlugin } = require('@11ty/eleventy');
 const syntaxHighlight = require('@11ty/eleventy-plugin-syntaxhighlight');
-const {slugifyString} = require('./config/utils');
-const {escape} = require('lodash');
+const { slugifyString } = require('./config/utils');
+const { escape } = require('lodash');
 const pluginRss = require('@11ty/eleventy-plugin-rss');
 const inclusiveLangPlugin = require('@11ty/eleventy-plugin-inclusive-language');
+const pluginTOC = require('eleventy-plugin-toc')
+
 
 module.exports = eleventyConfig => {
+
   // 	--------------------- Custom Watch Targets -----------------------
   eleventyConfig.addWatchTarget('./src/assets');
   eleventyConfig.addWatchTarget('./utils/*.js');
@@ -58,7 +54,8 @@ module.exports = eleventyConfig => {
   eleventyConfig.addLayoutAlias('base', 'base.njk');
   eleventyConfig.addLayoutAlias('page', 'page.njk');
   eleventyConfig.addLayoutAlias('home', 'home.njk');
-  eleventyConfig.addLayoutAlias('blog', 'blog.njk');
+  eleventyConfig.addLayoutAlias('trialFeed', 'trialFeed.njk');
+  eleventyConfig.addLayoutAlias('tagFeed', 'tagFeed.njk');
   eleventyConfig.addLayoutAlias('post', 'post.njk');
 
   // 	---------------------  Custom filters -----------------------
@@ -76,17 +73,17 @@ module.exports = eleventyConfig => {
   eleventyConfig.addFilter('cssmin', minifyCss);
   eleventyConfig.addNunjucksAsyncFilter('jsmin', minifyJs);
   eleventyConfig.addFilter('md', mdInline);
-  eleventyConfig.addFilter('splitlines', splitlines);
   eleventyConfig.addFilter('keys', Object.keys);
   eleventyConfig.addFilter('values', Object.values);
   eleventyConfig.addFilter('entries', Object.entries);
+
 
   // 	--------------------- Custom shortcodes ---------------------
   eleventyConfig.addNunjucksAsyncShortcode('imagePlaceholder', imageShortcodePlaceholder);
   eleventyConfig.addShortcode('youtube', liteYoutube);
   eleventyConfig.addShortcode('include_raw', includeRaw);
   eleventyConfig.addShortcode('year', () => `${new Date().getFullYear()}`); // current year, stephanie eckles
-  eleventyConfig.addShortcode('packageVersion', () => `v${packageVersion}`);
+  eleventyConfig.addPairedShortcode('aside', asideShortcode);
 
   // 	--------------------- Custom transforms ---------------------
   eleventyConfig.addPlugin(require('./config/transforms/html-config.js'));
@@ -96,10 +93,23 @@ module.exports = eleventyConfig => {
   eleventyConfig.addPlugin(require('./config/template-languages/js-config.js'));
 
   // 	--------------------- Custom collections -----------------------
-  eleventyConfig.addCollection('posts', getAllPosts);
+  eleventyConfig.addCollection('trials', getAllTrials);
 
-  // 	--------------------- Events ---------------------
-  eleventyConfig.on('afterBuild', svgToJpeg);
+  function filterTagList(tags) {
+    return (tags || []).filter(tag => ["all", "nav", "post", "posts", "trials"].indexOf(tag) === -1);
+  }
+
+  eleventyConfig.addFilter("filterTagList", filterTagList)
+
+  // Create an array of all tags
+  eleventyConfig.addCollection("tagList", function (collection) {
+    let tagSet = new Set();
+    collection.getAll().forEach(item => {
+      (item.data.tags || []).forEach(tag => tagSet.add(tag));
+    });
+
+    return filterTagList([...tagSet]);
+  });
 
   // 	--------------------- Plugins ---------------------
   eleventyConfig.addPlugin(EleventyRenderPlugin);
@@ -107,12 +117,12 @@ module.exports = eleventyConfig => {
   eleventyConfig.setLibrary('md', markdownLib);
   eleventyConfig.addPlugin(pluginRss);
   eleventyConfig.addPlugin(inclusiveLangPlugin);
+  eleventyConfig.addPlugin(pluginTOC);
 
   // 	--------------------- Passthrough File Copy -----------------------
   // same path
-  ['src/assets/fonts/', 'src/assets/images/'].forEach(path =>
-    eleventyConfig.addPassthroughCopy(path)
-  );
+  eleventyConfig.addPassthroughCopy('src/assets/fonts');
+  eleventyConfig.addPassthroughCopy('src/assets/images/');
 
   // social icons to root directory
   eleventyConfig.addPassthroughCopy({
@@ -124,6 +134,7 @@ module.exports = eleventyConfig => {
   });
 
   // 	--------------------- general config -----------------------
+
   return {
     // Pre-process *.md, *.html and global data files files with: (default: `liquid`)
     markdownTemplateEngine: 'njk',
@@ -134,7 +145,7 @@ module.exports = eleventyConfig => {
     pathPrefix: '/',
 
     dir: {
-      output: 'dist',
+      output: '_site',
       input: 'src',
       includes: '_includes',
       layouts: '_layouts'
